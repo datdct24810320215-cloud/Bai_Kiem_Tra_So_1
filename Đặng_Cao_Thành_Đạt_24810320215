@@ -1,0 +1,147 @@
+**Câu 1: Trình bày sự khác nhau giữa Value Types (Kiểu giá trị) và Reference Types  (Kiểu tham chiếu) trong C# về cơ chế lưu trữ vùng nhớ (Stack vs Heap). **
+
+1. Khái niệm cơ bản
+**Value Types** (Kiểu giá trị): Biến lưu trữ trực tiếp giá trị của dữ liệu. Các kiểu dữ liệu cơ bản như int, float, double, bool, char, các kiểu struct, enum đều thuộc nhóm này.
+**Reference Types** (Kiểu tham chiếu): Biến không chứa trực tiếp dữ liệu mà chỉ lưu trữ một địa chỉ tham chiếu (con trỏ) trỏ đến vùng nhớ chứa dữ liệu thực sự (đối tượng). Các kiểu như class, string, object, mảng (array), interface đều thuộc nhóm này.
+
+2. Cơ chế lưu trữ vùng nhớ: Stack vs. Heap
+**Bộ nhớ Stack** (Ngăn xếp)
+  - Đặc điểm: Hoạt động theo cơ chế LIFO (Last In, First Out - Vào sau ra trước). Tốc độ cấp phát và giải phóng bộ nhớ rất nhanh.
+  - Lưu trữ:
+    - Toàn bộ các biến Value Types được khai báo bên trong phương thức (biến cục bộ, tham số truyền vào).
+    - Phần địa chỉ tham chiếu (địa chỉ bộ nhớ) của các biến Reference Types.
+**Bộ nhớ Heap (Đống)**
+  - Đặc điểm: Vùng nhớ dùng chung cho toàn bộ ứng dụng, không hoạt động theo cơ chế LIFO. Việc cấp phát và giải phóng phức tạp hơn, được quản lý tự động bởi cơ chế Garbage Collector (GC) của .NET Framework/.NET Core.
+  - Lưu trữ: Toàn bộ nội dung dữ liệu/đối tượng thực tế của các biến Reference Types (được khởi tạo bằng từ khóa new).
+
+3. So sánh chi tiết
+**Value Types** (Kiểu giá trị)
+  - Vùng nhớ lưu trữ	Thường nằm trên Stack (hoặc nằm trong Heap nếu nó là trường thành viên của một class).
+  - Cách gán giá trị (b = a)	Sao chép giá trị: Tạo ra một bản sao hoàn toàn độc lập. Thay đổi b không ảnh hưởng đến a.
+  - Hiệu năng	Truy xuất nhanh hơn do nằm trên Stack.
+  - Giải phóng bộ nhớ	Tự động giải phóng ngay khi ra khỏi phạm vi khối lệnh (scope).
+**Reference Types** (Kiểu tham chiếu)
+  - Vùng nhớ lưu trữ Phần dữ liệu nằm trên Heap; địa chỉ của nó nằm trên Stack.
+  - Cách gán giá trị (b = a) Sao chép tham chiếu: Cả hai biến cùng trỏ đến một đối tượng trên Heap. Thay đổi qua b sẽ ảnh hưởng đến a.
+  - Hiệu năng Truy xuất chậm hơn do phải thông qua địa chỉ tham chiếu đến Heap.
+  - Giải phóng bộ nhớ Được quản lý và dọn dẹp tự động bởi Garbage Collector (GC) khi không còn tham chiếu nào trỏ tới.
+
+**Câu 2: Tính năng Init-only Properties (init) trong C# 9/10 khác gì so với thuộc tính  có set thông thường? Nêu trường hợp sử dụng thực tế. **
+
+1. Khái niệm cơ bản
+  - Thuộc tính có set thông thường: Cho phép gán giá trị cho thuộc tính bất cứ lúc nào trong vòng đời của đối tượng (sau khi khởi tạo, trong các phương thức khác,...).
+  - Init-only Properties (init): Thay vì dùng set, từ khóa init cho phép gán giá trị chỉ trong quá trình khởi tạo đối tượng (thông qua constructor hoặc object initializer). Sau khi đối tượng được tạo xong, thuộc tính này trở thành chỉ đọc (read-only) và không thể thay đổi giá trị được nữa.
+
+2. Sự khác biệt chính
+**Thuộc tính có set thông thường**
+  - Thời điểm gán giá trị Bất cứ lúc nào (lúc khởi tạo hoặc sau khi đối tượng đã hình thành).
+  - Tính bất biến (Immutability) Không đảm bảo tính bất biến (trạng thái đối tượng có thể bị thay đổi ngẫu nhiên ở bất kỳ đâu).
+  - Hỗ trợ Non-nullable/Required Có thể bị thay đổi trạng thái liên tục.
+**Thuộc tính init (Init-only)**
+  - Thời điểm gán giá trị Chỉ được gán lúc khởi tạo (Object Initializer hoặc Constructor).
+  - Tính bất biến (Immutability) Đảm bảo tính bất biến sau khi đối tượng được khởi tạo thành công, giúp code an toàn hơn.
+  - Hỗ trợ Non-nullable/Required Rất thích hợp kết hợp với từ khóa required (C# 11) để ép buộc truyền dữ liệu bắt buộc lúc khởi tạo.
+
+3. Ví dụ minh họa code
+C#
+public class User
+{
+    public string Username { get; init; } // Chỉ gán được lúc khởi tạo
+    public string Role { get; set; }      // Thay đổi thoải mái bất cứ lúc nào
+}
+class Program
+{
+    static void Main()
+    {
+        // 1. Khởi tạo đối tượng (Hợp lệ cho cả init và set)
+        var user = new User { Username = "admin_epu", Role = "Student" };
+        // 2. Thay đổi giá trị sau khi khởi tạo:
+        user.Role = "Admin";              // HỢP LỆ (vì dùng set)
+        // user.Username = "hacker";      // LỖI BIÊN DỊCH! Không thể gán lại vì là init-only
+    }
+}
+
+4. Trường hợp sử dụng thực tế
+  - DTOs (Data Transfer Objects) / Models: Khi bạn truyền dữ liệu giữa các layer (ví dụ từ Controller xuống Service), bạn muốn đảm bảo dữ liệu của gói tin đó không bị thay đổi dọc đường (tránh lỗi side-effects do vô tình gán đè giá trị).
+  - Cấu hình ứng dụng (Configuration Classes): Các lớp chứa thông số cấu hình đọc từ file appsettings.json khi khởi động ứng dụng. Sau khi ứng dụng đã chạy, các thông số này không được phép thay đổi để đảm bảo hệ thống ổn định.
+  - Lập trình hướng đối tượng an toàn (Thread-safety cơ bản): Các đối tượng có trạng thái bất biến (immutable) sẽ an toàn hơn khi chạy trong môi trường đa luồng (multi-threading) vì không sợ luồng khác vào sửa đổi dữ liệu giữa chừng.
+
+**Câu 3: Phân biệt sự khác nhau giữa phương thức virtual ở lớp cha và phương  thức override ở lớp con khi triển khai tính Đa hình (Polymorphism). **
+
+1. Khái niệm cơ bản
+  - Để thực hiện ghi đè phương thức (method overriding) nhằm đạt được tính đa hình, C# sử dụng cặp từ khóa virtual và override:
+  - virtual (ở lớp cha): Dùng để đánh dấu một phương thức cho phép các lớp con có quyền viết lại (ghi đè) nội dung của nó. Nếu lớp cha không khai báo virtual, lớp con không thể ghi đè (override) được.
+  - override (ở lớp con): Dùng để đánh dấu phương thức ở lớp con đang thực hiện việc ghi đè lại phương thức virtual (hoặc abstract) đã có ở lớp cha.
+
+2. Sự khác nhau chi tiết
+**Từ khóa virtual**
+  - Vị trí khai báo Đặt ở phương thức của lớp cha (Base class / Parent class).
+  - Mục đích "Mở cửa" cho phép lớp con thay đổi hành vi của phương thức nếu muốn (vẫn giữ lại hoặc thay đổi logic mặc định).
+  - Tính bắt buộc Không bắt buộc ở lớp cha (chỉ dùng khi muốn cho phép ghi đè).
+  - Hành vi thực thi Chạy logic mặc định được viết sẵn bên trong lớp cha (nếu lớp con không override lại).
+**Từ khóa override**
+  - Vị trí khai báo Đặt ở phương thức của lớp con (Derived class / Child class).
+  - Mục đích Thực hiện hành động "viết đè" code mới để thay thế hoàn toàn logic cũ của lớp cha.
+  - Tính bắt buộc Bắt buộc phải đi kèm với phương thức virtual, abstract hoặc override khác ở lớp cha.
+  - Hành vi thực thi Chạy logic mới hoàn toàn do lớp con định nghĩa khi đối tượng lớp con được gọi.
+
+4. Ví dụ minh họa code thực tế
+C#
+// Lớp cha
+public class DongVat
+{
+    // Phương thức virtual cho phép lớp con ghi đè
+    public virtual void Keu()
+    {
+        Console.WriteLine("Động vật phát ra tiếng kêu chung chung...");
+    }
+}
+// Lớp con 1: Kế thừa và ghi đè
+public class Cho : DongVat
+{
+    // Dùng override để viết lại hành vi
+    public override void Keu()
+    {
+        Console.WriteLine("Gâu gâu!");
+    }
+}
+// Lớp con 2: Không ghi đè (vẫn giữ nguyên virtual của cha)
+public class Meo : DongVat
+{
+    // Meo không viết lại phương thức Keu()
+}
+// --- Sử dụng tính đa hình ---
+class Program
+{
+    static void Main()
+    {
+        DongVat dv1 = new Cho();
+        dv1.Keu(); // Kết quả: "Gâu gâu!" (Gọi override ở lớp Cho)
+        DongVat dv2 = new Meo();
+        dv2.Keu(); // Kết quả: "Động vật phát ra tiếng kêu chung chung..." (Dùng virtual mặc định của lớp cha)
+    }
+}
+
+
+**Câu 4: Tại sao một thành phần được khai báo là static trong Lớp (Class) lại không thể truy xuất thông qua một thể hiện (Object Instance) được tạo bằng toán tử new? **
+
+1. Kiến trúc phân tầng bộ nhớ trong CLR (.NET)
+  - Khi một ứng dụng C# chạy, .NET phân chia rõ ràng hai cấp độ quản lý bộ nhớ:
+  - Cấp độ Type (Loại/Lớp): Khi một lớp lần đầu tiên được sử dụng, CLR sẽ nạp cấu trúc của lớp đó vào bộ nhớ. Các biến static được cấp phát tại đây và chỉ tồn tại duy nhất một bản sao cố định trong suốt vòng đời của ứng dụng.
+  - Cấp độ Instance (Thể hiện): Khi bạn dùng từ khóa new, CLR mới cấp phát một vùng nhớ riêng biệt trên Managed Heap cho các trường thông thường của đối tượng cụ thể đó.
+
+2. Triết lý thiết kế và Tính an toàn (Type-Safety) của C#
+  - C# là một ngôn ngữ có tính ràng buộc kiểu rất chặt chẽ. Các kỹ sư của Microsoft muốn lập trình viên phân định rạch ròi giữa việc thao tác với toàn bộ hệ thống/lớp (static) và thao tác với một đối tượng cụ thể (instance).
+  - Nếu cho phép truy xuất static thông qua biến instance, nó sẽ tạo ra sự mơ hồ về mặt ngữ nghĩa, khiến người đọc code lầm tưởng rằng biến static đó thuộc về riêng đối tượng đó, trong khi thực tế nó là dữ liệu chia sẻ chung toàn cục.
+
+3. Vòng đời hoạt động (Lifecycle) không đồng bộ
+  - Thành phần static: Sẵn sàng từ rất sớm, ngay khi chương trình nạp lớp (thậm chí trước khi có bất kỳ đối tượng new nào được tạo ra).
+  - Thành phần instance: Chỉ sinh ra sau khi lệnh new được thực thi và sẽ bị thu gom bởi Garbage Collector khi không còn ai sử dụng.
+  - Vì static có thể tồn tại độc lập hoàn toàn khi chưa có đối tượng nào hình thành, quy tắc gọi trực tiếp qua Tên Lớp là điều bắt buộc để đảm bảo logic vận hành.
+
+4. Thông điệp từ trình biên dịch (Compiler Error)
+  - Nếu bạn cố tình viết doiTuong.ThanhPhanStatic, trình biên dịch C# sẽ lập tức chặn lại và báo lỗi CS0176: "Member cannot be accessed with an instance reference; qualify it with a type name instead". Đây là cách C# bảo vệ lập trình viên khỏi những thiết kế code lỏng lẻo.
+
+
+
+
